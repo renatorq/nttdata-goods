@@ -1,0 +1,27 @@
+spring:
+#  security:
+#    oauth2:
+#      resourceserver:
+#        jwt:
+#          issuer-uri: http://localhost:8180/realms/nttdataproject
+#          jwk-set-uri: http://localhost:8180/realms/nttdataproject/protocol/openid-connect/certs
+
+  jpa:
+    database: postgresql
+    show-sql: false
+    hibernate:
+      ddl-auto: update
+
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://localhost/Almacen
+    username: postgres
+    password: coopac@780**
+
+  kafka:
+    consumer:
+      bootstrap-servers: localhost:9092
+      key-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+    topic:
+      name: topic-almacen-articulos
