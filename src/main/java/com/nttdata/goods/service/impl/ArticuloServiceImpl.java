@@ -4,7 +4,9 @@ import com.nttdata.goods.dto.DetalleOrdenEntradaDTO;
 import com.nttdata.goods.dto.RespuestaOrdenDTO;
 import com.nttdata.goods.kafka.KafkaProducerImpl;
 import com.nttdata.goods.model.Articulo;
+import com.nttdata.goods.model.OrdenEntrada;
 import com.nttdata.goods.repository.ArticuloRepository;
+import com.nttdata.goods.repository.OrdenEntradaRepository;
 import com.nttdata.goods.service.ArticuloService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -18,13 +20,16 @@ public class ArticuloServiceImpl implements ArticuloService {
     @Autowired
     private ArticuloRepository articuloRepository;
 
+    @Autowired
+    private OrdenEntradaRepository ordenEntradaRepository;
+
+//    @Autowired
+//    private KafkaProducerImpl kafkaProducerImpl;
+
     @Override
     public List<Articulo> listarArticulos() throws Exception {
         return articuloRepository.findAll();
     }
-
-    @Autowired
-    private KafkaProducerImpl kafkaProducerImpl;
 
     @Override
     public void registrarArticulo(Articulo articulo) throws Exception {
@@ -56,26 +61,53 @@ public class ArticuloServiceImpl implements ArticuloService {
 
     public void actualizarStockArticulo(DetalleOrdenEntradaDTO dto) throws Exception {
 
-        RespuestaOrdenDTO respuesta = new RespuestaOrdenDTO();
+//        RespuestaOrdenDTO respuesta = new RespuestaOrdenDTO();
 
         Optional<Articulo> articuloExiste = articuloRepository.findById(dto.getIdArticulo());
+        Optional<OrdenEntrada> ordenEntrada = ordenEntradaRepository.findById(dto.getIdOrdenEntrada());
+
+        OrdenEntrada orden = ordenEntrada.get();
 
         if (articuloExiste.isEmpty()) {
 
-            respuesta.setIdOrdenEntrada(dto.getIdOrdenEntrada());
-            respuesta.setRespuesta("ERROR");
+            orden.setEstado("RECHAZADO");
+            ordenEntradaRepository.save(orden);
+
+//            respuesta.setIdOrdenEntrada(dto.getIdOrdenEntrada());
+//            respuesta.setRespuesta("ERROR");
 
         } else {
-            Articulo articulo = articuloExiste.get();
-            articulo.setStock(articulo.getStock() + dto.getCantidad());
-            articuloRepository.save(articulo);
 
-            respuesta.setIdOrdenEntrada(dto.getIdOrdenEntrada());
-            respuesta.setRespuesta("OK");
+            Articulo articulo = articuloExiste.get();
+
+            Integer nuevoStock = this.calcularStock(articulo.getStock(), dto.getCantidad());
+
+            if (nuevoStock < 0) {
+                orden.setEstado("RECHAZADO");
+                ordenEntradaRepository.save(orden);
+
+            } else {
+                articulo.setStock(articulo.getStock() + dto.getCantidad());
+                articuloRepository.save(articulo);
+
+                orden.setEstado("ACEPTADO");
+                ordenEntradaRepository.save(orden);
+            }
+
+//            respuesta.setIdOrdenEntrada(dto.getIdOrdenEntrada());
+//            respuesta.setRespuesta("OK");
 
         }
 
-        kafkaProducerImpl.sendMessage(respuesta);
+//        kafkaProducerImpl.sendMessage(respuesta);
 
     }
+
+    private Integer calcularStock(Integer stockArticulo, Integer stockOrden) {
+
+        Integer total = stockArticulo + stockOrden;
+
+        return total;
+    }
+
 }
