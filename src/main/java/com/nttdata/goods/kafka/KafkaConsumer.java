@@ -1,6 +1,7 @@
 package com.nttdata.goods.kafka;
 
-import com.nttdata.goods.dto.DetalleOrdenEntradaDTO;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.nttdata.goods.dto.DetalleOrdenDTO;
 import com.nttdata.goods.service.ArticuloService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,8 +18,10 @@ public class KafkaConsumer {
     ArticuloService articuloService;
 
     @KafkaListener(topics = "${spring.kafka.consumer.name}", groupId = "${spring.kafka.consumer.group-id}")
-    public void consume(DetalleOrdenEntradaDTO data) throws Exception {
+    public void consume(DetalleOrdenDTO data) throws Exception {
         LOGGER.info(String.format("Json message recieved -> %s", data.toString()));
-       articuloService.actualizarStockArticulo(data);
+        articuloService.actualizarStockArticulo(data);
+
+
     }
 }

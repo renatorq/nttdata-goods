@@ -1,6 +1,6 @@
 package com.nttdata.goods.service;
 
-import com.nttdata.goods.dto.DetalleOrdenEntradaDTO;
+import com.nttdata.goods.dto.DetalleOrdenDTO;
 import com.nttdata.goods.model.Articulo;
 
 import java.util.List;
@@ -14,6 +14,6 @@ public interface ArticuloService {
 
     Articulo buscarArticulo(int id) throws Exception;
 
-    void actualizarStockArticulo(DetalleOrdenEntradaDTO dto) throws Exception;
+    void actualizarStockArticulo(DetalleOrdenDTO dto) throws Exception;
 
 }

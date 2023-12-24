@@ -12,20 +12,22 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
-public class OrdenEntrada {
+public class Orden {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer idOrdenEntrada;
+    private Integer idOrden;
 
-    @Column(name = "fechaentrada", nullable = false)
-    private LocalDate fechaentrada;
+    @Column(name = "fecharegistro", nullable = false)
+    private LocalDate fecharegistro;
 
     @Column(name = "estado")
     private String estado;
 
+    @Column(name = "tipoOrden", nullable = false)
+    private String tipoOrden;
+
     @Column(name = "idProveedor")
     private Integer idProveedor;
-
 
 }

@@ -1,10 +1,8 @@
 package com.nttdata.goods.service.impl;
 
-import com.nttdata.goods.dto.DetalleOrdenEntradaDTO;
-import com.nttdata.goods.dto.RespuestaOrdenDTO;
-import com.nttdata.goods.kafka.KafkaProducerImpl;
+import com.nttdata.goods.dto.DetalleOrdenDTO;
 import com.nttdata.goods.model.Articulo;
-import com.nttdata.goods.model.OrdenEntrada;
+import com.nttdata.goods.model.Orden;
 import com.nttdata.goods.repository.ArticuloRepository;
 import com.nttdata.goods.repository.OrdenEntradaRepository;
 import com.nttdata.goods.service.ArticuloService;
@@ -22,9 +20,6 @@ public class ArticuloServiceImpl implements ArticuloService {
 
     @Autowired
     private OrdenEntradaRepository ordenEntradaRepository;
-
-//    @Autowired
-//    private KafkaProducerImpl kafkaProducerImpl;
 
     @Override
     public List<Articulo> listarArticulos() throws Exception {
@@ -59,53 +54,48 @@ public class ArticuloServiceImpl implements ArticuloService {
         return op.isPresent() ? op.get() : new Articulo();
     }
 
-    public void actualizarStockArticulo(DetalleOrdenEntradaDTO dto) throws Exception {
-
-//        RespuestaOrdenDTO respuesta = new RespuestaOrdenDTO();
+    public void actualizarStockArticulo(DetalleOrdenDTO dto) throws Exception {
 
         Optional<Articulo> articuloExiste = articuloRepository.findById(dto.getIdArticulo());
-        Optional<OrdenEntrada> ordenEntrada = ordenEntradaRepository.findById(dto.getIdOrdenEntrada());
+        Optional<Orden> orden = ordenEntradaRepository.findById(dto.getIdOrden());
 
-        OrdenEntrada orden = ordenEntrada.get();
+        Orden ordenEncontrada = orden.get();
 
         if (articuloExiste.isEmpty()) {
 
-            orden.setEstado("RECHAZADO");
-            ordenEntradaRepository.save(orden);
-
-//            respuesta.setIdOrdenEntrada(dto.getIdOrdenEntrada());
-//            respuesta.setRespuesta("ERROR");
+            ordenEncontrada.setEstado("RECHAZADO");
+            ordenEntradaRepository.save(ordenEncontrada);
 
         } else {
 
             Articulo articulo = articuloExiste.get();
 
-            Integer nuevoStock = this.calcularStock(articulo.getStock(), dto.getCantidad());
+            Integer nuevoStock = this.calcularStock(articulo.getStock(), dto);
 
             if (nuevoStock < 0) {
-                orden.setEstado("RECHAZADO");
-                ordenEntradaRepository.save(orden);
+                ordenEncontrada.setEstado("RECHAZADO");
+                ordenEntradaRepository.save(ordenEncontrada);
 
             } else {
-                articulo.setStock(articulo.getStock() + dto.getCantidad());
+                articulo.setStock(nuevoStock);
                 articuloRepository.save(articulo);
 
-                orden.setEstado("ACEPTADO");
-                ordenEntradaRepository.save(orden);
+                ordenEncontrada.setEstado("ACEPTADO");
+                ordenEntradaRepository.save(ordenEncontrada);
             }
-
-//            respuesta.setIdOrdenEntrada(dto.getIdOrdenEntrada());
-//            respuesta.setRespuesta("OK");
-
         }
-
-//        kafkaProducerImpl.sendMessage(respuesta);
-
     }
 
-    private Integer calcularStock(Integer stockArticulo, Integer stockOrden) {
+    private Integer calcularStock(Integer stockArticulo, DetalleOrdenDTO dto) {
 
-        Integer total = stockArticulo + stockOrden;
+        Integer total = 0;
+
+        if (dto.getTipoOrden().equalsIgnoreCase("ENTRADA")) {
+            total = stockArticulo + dto.getCantidad();
+        }
+        if (dto.getTipoOrden().equalsIgnoreCase("SALIDA")) {
+            total = stockArticulo - dto.getCantidad();
+        }
 
         return total;
     }
