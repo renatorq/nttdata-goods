@@ -3,6 +3,7 @@ package com.nttdata.goods.utils;
 public class Constantes {
     public static final String ESTADO_ORDEN_RECHAZADO = "RECHAZADO";
     public static final String ESTADO_ORDEN_ACEPTADO = "ACEPTADO";
+    public static final String ESTADO_ORDEN_ANULADO = "ANULADO";
     public static final String TIPO_ORDEN_ENTRADA="ENTRADA";
     public static final String TIPO_ORDEN_SALIDA="SALIDA";
     public static final String TIPO_OPERACION_RE="REGISTRO";
